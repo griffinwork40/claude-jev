@@ -39,6 +39,7 @@ export TYPESAFE_API_KEY=your_key_here
       "type": "local",
       "command": ["npx", "-y", "github:codaaiteam/jev-mcp#6cfb78daa00d405b76f8fee221b559cbb73563a8"],
       "enabled": true,
+      "codemode": false,
       "environment": {
         "TYPESAFE_API_KEY": "{env:TYPESAFE_API_KEY}"
       }
@@ -61,7 +62,7 @@ OpenCode prefixes each MCP tool with the server's key from `opencode.json`. With
 | `jev_jev_gate` | Risk-screen an action before it runs (allow / confirm / block) |
 | `jev_jev_decide` | Multiple typed questions in one round trip |
 
-OpenCode Code Mode is on by default. Under it the model sees `tools.jev.jev_classify(...)`, and the same shape for the other four. Set `"codemode": false` on the server when the native names in the table must stay on the tool list. On OpenCode 2 that field is `mcp.servers.jev.codemode`.
+OpenCode Code Mode is on by default. Under it the model sees `tools.jev.jev_classify(...)`, and the same shape for the other four. The examples set `"codemode": false` on the same server object as `type`, `command`, and `environment`, so the native names in the table stay on the tool list. An OpenCode 2 config nests that whole object under `mcp.servers` (`mcp.servers.jev` holds `type`, `command`, `environment`, and `codemode` together).
 
 ## Usage tips
 
@@ -79,7 +80,7 @@ Use `jev` tools to classify prompts, score risk, and gate dangerous actions.
 
 ### Restrict to a specific agent
 
-If you run multiple agents and only want one to use Jev, deny it globally and allow it on a built-in agent. Prefer `permission` over the deprecated `tools` map. This keeps Jev on the built-in `build` agent and off the others. The `jev*` patterns match the native names above, which stay visible when Code Mode is off (`"codemode": false`).
+If you run multiple agents and only want one to use Jev, deny it globally and allow it on a built-in agent. Prefer `permission` over the deprecated `tools` map. This keeps Jev on the built-in `build` agent and off the others. The `jev*` patterns match the native names above. `"codemode": false` sits on that same server object, next to `type`, `command`, and `environment`.
 
 ```json
 {
@@ -89,6 +90,7 @@ If you run multiple agents and only want one to use Jev, deny it globally and al
       "type": "local",
       "command": ["npx", "-y", "github:codaaiteam/jev-mcp#6cfb78daa00d405b76f8fee221b559cbb73563a8"],
       "enabled": true,
+      "codemode": false,
       "environment": {
         "TYPESAFE_API_KEY": "{env:TYPESAFE_API_KEY}"
       }
