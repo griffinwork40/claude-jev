@@ -26,7 +26,7 @@ A hosted key and a TypeSafe key are not interchangeable. The samples pass `TYPES
 ## Install
 
 ```bash
-npm install ai @ai-sdk/mcp
+npm install ai @ai-sdk/mcp zod
 ```
 
 Plus your LLM provider, e.g.:
