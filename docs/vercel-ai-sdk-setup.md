@@ -63,7 +63,7 @@ try {
   const tools = await jev.tools();
 
   const result = await generateText({
-    model: anthropic("claude-sonnet-4-20250514"),
+    model: anthropic("claude-sonnet-4-6"),
     tools,
     stopWhen: isStepCount(5),
     prompt: "Classify this request: 'refactor the auth module to support SAML'",
@@ -113,7 +113,7 @@ try {
   const tools = await jev.tools();
 
   const result = await generateText({
-    model: anthropic("claude-sonnet-4-20250514"),
+    model: anthropic("claude-sonnet-4-6"),
     tools,
     stopWhen: isStepCount(3),
     prompt: `You have a user comment to moderate. Use jev_check to determine
@@ -177,7 +177,7 @@ try {
   const tools = await jev.tools();
 
   const result = await generateText({
-    model: anthropic("claude-sonnet-4-20250514"),
+    model: anthropic("claude-sonnet-4-6"),
     tools,
     stopWhen: isStepCount(3),
     prompt: `Use jev_classify to route this request to the right team.
