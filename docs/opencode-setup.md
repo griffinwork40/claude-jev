@@ -23,9 +23,9 @@ A hosted `jv_live_` key is valid only at the jevtypesafeai.com gateway.
 
 ## Setup
 
-Put the key where OpenCode can see it, then add the Jev MCP server. This works in either a project-level `opencode.json` or your global config at `~/.config/opencode/opencode.json`.
+Add the Jev MCP server in either a project-level `opencode.json` or your global config at `~/.config/opencode/opencode.json`.
 
-`{env:TYPESAFE_API_KEY}` is safe to commit: it is a substitution, not the secret. A shell `export` in a terminal does not reach the desktop app, and an unset variable becomes an empty string.
+`{env:TYPESAFE_API_KEY}` is safe to commit: it is a substitution, not the secret. OpenCode substitutes it from the environment of the OpenCode process itself — the OS or user environment, launchd or systemd, or a shell profile the desktop app inherits. The `export` below applies only to a CLI session started from that shell. An unset variable becomes an empty string.
 
 ```bash
 export TYPESAFE_API_KEY=your_key_here
