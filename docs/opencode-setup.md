@@ -5,25 +5,30 @@
 ## Prerequisites
 
 - [OpenCode](https://opencode.ai/docs/) installed (`brew install anomalyco/tap/opencode` or `npm install -g opencode-ai`)
-- A Jev API key from [console.typesafe.ai](https://console.typesafe.ai/) (TypeSafe keys, `ts_...` / `apikey_...` prefix) or purchased at [jevtypesafeai.com/pricing](https://jevtypesafeai.com/pricing) (hosted keys, `jv_live_...` prefix, prepaid credit required). The browser playground at jevtypesafeai.com is free; the API is not.
+- Node.js `>=18` on `PATH`. The config below starts jev-mcp with `npx`, and a Homebrew-only OpenCode install does not provide `npx`.
+- A Jev API key. A hosted key from [jevtypesafeai.com/pricing](https://jevtypesafeai.com/pricing) starts with `jv_live_` and needs prepaid credit (the browser playground is free; the API is not). Any other key, including one from [console.typesafe.ai](https://console.typesafe.ai/), goes to TypeSafe unless `JEV_BASE_URL` is set. See [Credential routing](#credential-routing).
 
 ## Credential routing
 
-The MCP server auto-routes requests based on key prefix:
+Pinned at `6cfb78daa00d405b76f8fee221b559cbb73563a8`, jev-mcp reads the key from `TYPESAFE_API_KEY`, or from the aliases `JEV_API_KEY` and `JEV_KEY`. It does not read `OPENROUTER_API_KEY`. This Claude Code plugin's OpenRouter path — `OPENROUTER_API_KEY`, or an `sk-or-` value in `TYPESAFE_API_KEY` sent to `https://openrouter.ai/api/v1/systemone` — is a different credential story and does not apply to this server.
 
-| Key prefix | Source | Endpoint |
-|---|---|---|
-| `jv_live_...` | [jevtypesafeai.com/pricing](https://jevtypesafeai.com/pricing) (hosted gateway, not affiliated with TypeSafe AI) | `https://jevtypesafeai.com/api/v1/decide` |
-| `ts_...` / `apikey_...` | [console.typesafe.ai](https://console.typesafe.ai/) (official TypeSafe API) | `https://api.typesafe.ai/v1/systemone` |
+An explicit `JEV_BASE_URL` always wins. With it unset, the server special-cases one prefix:
 
-These key types are not interchangeable. Use one or the other.
+| Key in `TYPESAFE_API_KEY` (or `JEV_API_KEY` / `JEV_KEY`) | Endpoint |
+|---|---|
+| Starts with `jv_live_` | `https://jevtypesafeai.com/api/v1/decide` (hosted gateway at [jevtypesafeai.com/pricing](https://jevtypesafeai.com/pricing), not affiliated with TypeSafe AI) |
+| Anything else, including an `sk-or-` OpenRouter key placed in `TYPESAFE_API_KEY` | `https://api.typesafe.ai/v1/systemone` |
+
+A hosted `jv_live_` key is valid only at the jevtypesafeai.com gateway.
 
 ## Setup
 
-Export your key, then add the Jev MCP server to your OpenCode config. This works in either a project-level `opencode.json` or your global config at `~/.config/opencode/opencode.json`:
+Put the key where OpenCode can see it, then add the Jev MCP server. This works in either a project-level `opencode.json` or your global config at `~/.config/opencode/opencode.json`.
+
+`{env:TYPESAFE_API_KEY}` is safe to commit: it is a substitution, not the secret. A shell `export` in a terminal does not reach the desktop app, and an unset variable becomes an empty string.
 
 ```bash
-export TYPESAFE_API_KEY=ts_your_key_here
+export TYPESAFE_API_KEY=your_key_here
 ```
 
 ```json
@@ -32,7 +37,7 @@ export TYPESAFE_API_KEY=ts_your_key_here
   "mcp": {
     "jev": {
       "type": "local",
-      "command": ["npx", "-y", "github:codaaiteam/jev-mcp#6cfb78daa00d"],
+      "command": ["npx", "-y", "github:codaaiteam/jev-mcp#6cfb78daa00d405b76f8fee221b559cbb73563a8"],
       "enabled": true,
       "environment": {
         "TYPESAFE_API_KEY": "{env:TYPESAFE_API_KEY}"
@@ -46,7 +51,7 @@ OpenCode discovers the tools automatically on next launch.
 
 ## Available tools
 
-OpenCode prefixes each MCP tool with the server's key from `opencode.json`. With the key `jev` above, the tools appear as:
+OpenCode prefixes each MCP tool with the server's key from `opencode.json`. With the key `jev` above, the native registered names are:
 
 | Tool in OpenCode | What it does |
 |---|---|
@@ -55,6 +60,8 @@ OpenCode prefixes each MCP tool with the server's key from `opencode.json`. With
 | `jev_jev_check` | Calibrated yes/no probability (gates, filters, guardrails) |
 | `jev_jev_gate` | Risk-screen an action before it runs (allow / confirm / block) |
 | `jev_jev_decide` | Multiple typed questions in one round trip |
+
+OpenCode Code Mode is on by default. Under it the model sees `tools.jev.jev_classify(...)`, and the same shape for the other four. Set `"codemode": false` on the server when the native names in the table must stay on the tool list. On OpenCode 2 that field is `mcp.servers.jev.codemode`.
 
 ## Usage tips
 
@@ -72,7 +79,7 @@ Use `jev` tools to classify prompts, score risk, and gate dangerous actions.
 
 ### Restrict to a specific agent
 
-If you run multiple agents and only want one to use Jev, disable it globally and enable it per-agent:
+If you run multiple agents and only want one to use Jev, deny it globally and allow it on a built-in agent. Prefer `permission` over the deprecated `tools` map. This keeps Jev on the built-in `build` agent and off the others. The `jev*` patterns match the native names above, which stay visible when Code Mode is off (`"codemode": false`).
 
 ```json
 {
@@ -80,27 +87,25 @@ If you run multiple agents and only want one to use Jev, disable it globally and
   "mcp": {
     "jev": {
       "type": "local",
-      "command": ["npx", "-y", "github:codaaiteam/jev-mcp#6cfb78daa00d"],
+      "command": ["npx", "-y", "github:codaaiteam/jev-mcp#6cfb78daa00d405b76f8fee221b559cbb73563a8"],
       "enabled": true,
       "environment": {
         "TYPESAFE_API_KEY": "{env:TYPESAFE_API_KEY}"
       }
     }
   },
-  "tools": {
-    "jev*": false
+  "permission": {
+    "jev*": "deny"
   },
   "agent": {
-    "reviewer": {
-      "tools": {
-        "jev*": true
+    "build": {
+      "permission": {
+        "jev*": "allow"
       }
     }
   }
 }
 ```
-
-The `jev*` globs match the prefixed names (`jev_jev_classify`, etc.).
 
 ## Links
 
